@@ -1,5 +1,4 @@
 import { assistantId } from "@/app/assistant-config";
-import "openai/shims/node";
 import { openai } from "@/app/openai";
 import { AssistantStreamEvent } from "openai/resources/beta/assistants";
 
