@@ -1,6 +1,7 @@
 import { assistantId } from "@/app/assistant-config";
 import { openai } from "@/app/openai";
 import { AssistantStreamEvent } from "openai/resources/beta/assistants";
+import * as toolCallFunctions from "./toolCallFunctions";
 
 export const runtime = "nodejs";
 
@@ -12,20 +13,18 @@ async function handleRequiresAction(
   const toolCallOutputs = await Promise.all(
     toolCalls.map(async (toolCall) => {
       let result = undefined;
-      console.log("toolCall", toolCall);
-      if (toolCall.function.name === "search_availability") {
-        const availabilities = await (
-          await fetch(
-            "https://66b357b77fba54a5b7ec89d3.mockapi.io/api/v1/availabilities?tags[]=18holes&tags[]=tee1"
-          )
-        ).json();
+      const fn = toolCallFunctions[toolCall.function.name];
+      if (fn) {
+        // I don't  actually pass them here to show something on UI
+        // const toolCallArguments = JSON.parse(toolCall.function.arguments);
+        // result = await fn(toolCallArguments);
+        result = await fn();
         controller.enqueue(
           `${JSON.stringify({
-            event: "search_availability",
-            data: availabilities,
+            event: toolCall.function.name,
+            data: result,
           })}\n`
         );
-        result = availabilities;
       }
       return {
         output: JSON.stringify(result),
